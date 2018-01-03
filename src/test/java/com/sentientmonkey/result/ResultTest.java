@@ -2,57 +2,58 @@ package com.sentientmonkey.result;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 public class ResultTest {
+    Result<Integer,String> success = Result.ok(1);
+    Result<Integer,String> failure = Result.error("Failed");
+
     @Test
-    public void resultSuccess() {
-        Result<Integer,String> result = Result.ok(1);
-        assertTrue(result.isOk());
-        assertFalse(result.isError());
-        assertEquals((Integer)1, result.getOk());
-        assertEquals((Integer)1, result.unwrap());
+    public void resultSuccess() throws Exception {
+        assertThat(success.isOk()).isTrue();
+        assertThat(success.isError()).isFalse();
+        assertThat(success.getOk()).isEqualTo(1);
+        assertThat(success.unwrap()).isEqualTo(1);
+    }
+
+    @Test
+    public void resultThrowsUnwrappingError() throws Exception {
+        Throwable exception = catchThrowable(() -> failure.unwrap());
+
+        assertThat(exception).isInstanceOf(ResultErrorException.class)
+                .hasMessage("Tried to unwrap error")
+                .hasFieldOrPropertyWithValue("error", "Failed");
     }
 
     @Test
     public void resultError() {
-        Result<Integer,String> result = Result.error("Failed");
-        assertTrue(result.isError());
-        assertFalse(result.isOk());
-        assertEquals("Failed", result.getError());
+        assertThat(failure.isError()).isTrue();
+        assertThat(failure.isOk()).isFalse();
+        assertThat(failure.getError()).isEqualTo("Failed");
     }
 
     @Test
-    public void resultCanMap() {
-        Result<Integer,String> success = Result.ok(1);
-        Result<Integer,String> failure = Result.error("Failed");
-        assertEquals((Integer) 2, success.map(i -> i + 1).unwrap());
-        assertEquals("Failed", failure.map(i -> i + 1).getError());
+    public void resultCanMap() throws Exception {
+        assertThat(success.map(i -> i + 1).unwrap()).isEqualTo(2);
+        assertThat(failure.map(i -> i + 1).getError()).isEqualTo("Failed");
     }
 
     @Test
-    public void resultCanMapToAnOtherType() {
-        Result<Integer,String> success = Result.ok(1);
-        Result<Integer,String> failure = Result.error("Failed");
-        assertEquals("2", success.map(i -> new Integer(i + 1).toString()).unwrap());
-        assertEquals("Failed", failure.map(i -> new Integer(i + 1).toString()).getError());
+    public void resultCanMapToAnOtherType() throws Exception {
+        assertThat(success.map(i -> Integer.toString(i + 1)).unwrap()).isEqualTo("2");
+        assertThat(failure.map(i -> Integer.toString(i + 1)).getError()).isEqualTo("Failed");
     }
 
     @Test
-    public void resultCanMapError() {
-        Result<Integer,String> success = Result.ok(1);
-        Result<Integer,String> failure = Result.error("Failed");
-        assertEquals((Integer) 1, success.mapError(s -> s + "!!").unwrap());
-        assertEquals("Failed!!", failure.mapError(s -> s + "!!").getError());
+    public void resultCanMapError() throws Exception {
+        assertThat(success.mapError(s -> s + "!!").unwrap()).isEqualTo(1);
+        assertThat(failure.mapError(s -> s + "!!").getError()).isEqualTo("Failed!!");
     }
 
     @Test
-    public void resultCanMapErrorToAnotherType() {
-        Result<Integer,String> success = Result.ok(1);
-        Result<Integer,String> failure = Result.error("Failed");
-        assertEquals((Integer) 1, success.mapError(s -> s + "!!").unwrap());
-        assertEquals((Integer) 42, failure.mapError(s -> new Integer(42)).getError());
+    public void resultCanMapErrorToAnotherType() throws Exception {
+        assertThat(success.mapError(s -> s + "!!").unwrap()).isEqualTo(1);
+        assertThat(failure.mapError(s -> s.equals("Failed") ? 42 : 0).getError()).isEqualTo(42);
     }
 }

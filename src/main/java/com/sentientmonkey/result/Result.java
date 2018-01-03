@@ -26,9 +26,9 @@ public class Result<T,E> {
         return error != null;
     }
 
-    public T unwrap() throws RuntimeException {
+    public T unwrap() throws ResultErrorException {
         if (isError()) {
-            throw new RuntimeException(error.toString());
+            throw new ResultErrorException(this.getError(), "Tried to unwrap error");
         }
 
         return ok;

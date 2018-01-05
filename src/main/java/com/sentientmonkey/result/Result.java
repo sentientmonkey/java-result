@@ -42,6 +42,14 @@ public class Result<T,E> {
         return Result.error(this.getError());
     }
 
+    public <R> Result<R,E> flatMap(Function<T,Result<R,E>> function) {
+        if (isOk()) {
+            return function.apply(ok);
+        }
+
+        return Result.error(this.getError());
+    }
+
     public <R> Result<T,R> mapError(Function<E,R> function) {
         if (isError()) {
             return Result.error(function.apply(error));

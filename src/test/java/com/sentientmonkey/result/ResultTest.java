@@ -27,6 +27,19 @@ public class ResultTest {
     }
 
     @Test
+    public void resultExceptionProperty() throws Exception {
+        boolean thrown = false;
+        try {
+            failure.unwrap();
+        } catch (ResultErrorException e) {
+            String error = e.getError();
+            assertThat(error).isEqualTo("Failed");
+            thrown = true;
+        }
+        assertThat(thrown).isTrue();
+    }
+
+    @Test
     public void resultError() {
         assertThat(failure.isError()).isTrue();
         assertThat(failure.isOk()).isFalse();
@@ -43,6 +56,12 @@ public class ResultTest {
     public void resultCanMapToAnOtherType() throws Exception {
         assertThat(success.map(i -> Integer.toString(i + 1)).unwrap()).isEqualTo("2");
         assertThat(failure.map(i -> Integer.toString(i + 1)).getError()).isEqualTo("Failed");
+    }
+
+    @Test
+    public void resultCanFlatMap() throws Exception {
+        assertThat(success.flatMap(i -> Result.ok(i + 1)).unwrap()).isEqualTo(2);
+        assertThat(failure.flatMap(i -> Result.ok(i + 1)).getError()).isEqualTo("Failed");
     }
 
     @Test

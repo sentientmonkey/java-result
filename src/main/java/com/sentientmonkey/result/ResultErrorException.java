@@ -1,9 +1,9 @@
 package com.sentientmonkey.result;
 
 import lombok.EqualsAndHashCode;
-import lombok.Value;
+import lombok.ToString;
 
-@Value
+@ToString
 @EqualsAndHashCode(callSuper = false)
 public class ResultErrorException extends Exception {
     private final Object error;
@@ -11,5 +11,9 @@ public class ResultErrorException extends Exception {
     public ResultErrorException(Object error, String message) {
         super(message);
         this.error = error;
+    }
+
+    public <E> E getError() {
+        return (E)error;
     }
 }
